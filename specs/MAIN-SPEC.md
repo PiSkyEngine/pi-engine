@@ -1,36 +1,33 @@
 # Pie in the Sky (PI) 3D Graphics Engine Specification
 
 **Author**: Mark Bednarczyk  
-**Date**: May 29, 2025  
-**Version**: 1.2  
+**Date**: May 31, 2025  
+**Version**: 1.0  
 
 ## Version History
 | **Version** | **Date**       | **Changes**                                                                 |
 |-------------|----------------|-----------------------------------------------------------------------------|
-| 1.0         | May 22, 2025   | Initial version with updated coordinate system, `org.piengine` group ID, JDK 23, and SnakeYAML module support. |
-| 1.1         | May 29, 2025   | Refactored `pi-engine-core` into `pi-commons-math`, `pi-commons-utils`, and `pi-engine-core`. Added independent commons modules for jMonkeyEngine compatibility. Updated module structure and dependencies. |
-| 1.2         | May 29, 2025   | Renamed commons modules to `pi-engine-commons-*`, split `pi-engine-commons-math` into `*.coordinates`, `*.math`, `*.shapes` packages, moved `core.util` to `pi-engine-commons-utils`, added Omnibus event bus under `*.utils.eventbus`. |
+| 1.0         | May 31, 2025   | Initial deployment with core modules (`pi-engine-core`, `pi-engine-math`, `pi-engine-util`). Includes scene management, plugin system, app lifecycle, multi-threading with StructuredTaskScope, and basic OpenGL rendering. Plugin modules for advanced rendering, physics, audio, UI, and editor are planned. |
 
 ## 1. Overview
-The Pie in the Sky (PI) engine is a next-generation 3D graphics engine designed to combine the simplicity of HTML/CSS with the power of modern game engines like Unreal and Unity. It targets indie developers, educators, and content creators, offering a modular, community-driven architecture, a custom editor, and advanced features like AI-driven tools and real-time streaming. The engine is cross-platform, supporting Windows, macOS, Linux, iOS, Android, consoles (PS5, Xbox), VR/AR, and web via WebGL/WASM.
+The Pie in the Sky (PI) engine is a next-generation 3D graphics engine designed to combine the simplicity of HTML/CSS with the power of modern game engines like Unreal Engine. It targets indie developers, educators, and content creators, offering a modular, community-driven architecture, a custom editor, and advanced features like AI-driven tools and real-time streaming. The engine is cross-platform, supporting Windows, macOS, Linux, iOS, Android, consoles (PS5, Xbox), VR/AR, and web via WebGL/WASM.
 
 ### Objectives
 - **Simplicity**: YAML-based configurations and a clean editor UI ensure ease of use.
-- **Power**: Match/exceed Unreal and jMonkeyEngine features with plugins for rendering, physics, audio, and more.
+- **Power**: Match/exceed Unreal Engine features with plugins for rendering, physics, audio, and more.
 - **Extensibility**: Fully modular plugin system enables community innovation.
 - **Performance**: Multi-threaded pipeline using StructuredTaskScope and Virtual Threads leverages modern hardware.
 - **Accessibility**: First-class Java API and guided workflows lower the entry barrier.
 
 ### Key Features
 - Custom `.pi?` file formats (e.g., `.pis` for scenes, `.pio` for objects).
-- Modular architecture with plugins for all components, loaded/unloaded per app state.
-- Custom PI-based editor for scene development, app state management, plugins, marketplace, assets, and configs.
+- Modular architecture with plugins for all components, loaded/unloaded per app.
+- Custom PI-based editor for scene development, app management, plugins, marketplace, assets, and configs.
 - Multi-threaded (MT) pipeline using Java’s StructuredTaskScope and Virtual Threads.
 - Pluggable rendering backends (Vulkan, OpenGL, DirectX, etc.).
 - First-class Java API, with a separate C/C++ API planned for future compatibility.
-- Independent commons modules (`pi-engine-commons-math`, `pi-engine-commons-utils`) for use in other projects (e.g., jMonkeyEngine).
 - Support for external asset formats (FBX, glTF, OBJ, COLLADA).
-- Feature parity with Unreal/jMonkeyEngine, enhanced by AI and streaming.
+- Feature parity with Unreal Engine, enhanced by AI and streaming.
 
 ## 2. Core Architecture
 
@@ -45,11 +42,31 @@ The PI engine is implemented entirely in Java (version 23+), leveraging Java bin
 - **Java Features**: Records, sealed classes, virtual threads, StructuredTaskScope (JDK 23).
 - **C/C++ Compatibility**: Java API uses portable abstractions (e.g., `SceneNode.setMesh(String)`) to align with future C/C++ API (e.g., `SceneNode::setMesh(std::string)`).
 
-### 2.2. Modular Design
-The engine is organized into commons and engine-specific modules. Commons modules (`pi-engine-commons-math`, `pi-engine-commons-utils`) provide general-purpose types, independent for use in other projects (e.g., jMonkeyEngine). The core module (`pi-engine-core`) handles engine-specific APIs, with additional modules for rendering, physics, audio, UI, and editor.
+### 2.2. Module Overview
+The PI engine is organized into a set of Java modules, grouped into two categories: **Base Modules** and **Plugin Modules**. Base Modules provide the foundational functionality, while Plugin Modules add or expand specific features.
 
-### 2.3. Plugin System
-Plugins are Java classes packaged as `.pip` files (ZIP-compressed JARs), loaded via `ServiceLoader`. They are loaded/unloaded per app state, enabling runtime customization. Supported components:
+#### Base Modules
+| **Module**       | **Maven Artifact ID** | **Group ID**   | **Purpose**                                                                 |
+|------------------|-----------------------|----------------|-----------------------------------------------------------------------------|
+| `org.piengine`   | `pi-engine`           | `org.piengine` | The parent module, aggregating all submodules for the PI engine project.   |
+| `org.piengine.math` | `pi-engine-math`      | `org.piengine` | Provides mathematical foundations, including coordinates (`Cartesian3D`, `Vector3f`), shapes (`Point3D`), matrices, and math functions (`MathUtils`). |
+| `org.piengine.util` | `pi-engine-util`      | `org.piengine` | Offers general-purpose utilities, including concurrency (`UpgradableReadWriteLock`, `Lockable`), event handling (`Omnibus`), and registration (`Registration`). |
+| `org.piengine.core` | `pi-engine-core`      | `org.piengine` | The main module providing the core API and functionality, including scene management (`Scene`, `SceneNode`), plugin system (`Plugin`), apps (`App`), task scheduling, input handling, and profiles. |
+
+#### Plugin Modules
+| **Module**                   | **Maven Artifact ID**   | **Group ID**   | **Purpose**                                                                 |
+|------------------------------|-------------------------|----------------|-----------------------------------------------------------------------------|
+| `org.piengine.render.opengl` | `pi-engine-render-opengl` | `org.piengine` | OpenGL rendering backend for the PI engine (planned).                      |
+| `org.piengine.physics.bullet`| `pi-engine-physics-bullet`| `org.piengine` | Bullet Physics backend for physics simulation (planned).                   |
+| `org.piengine.audio.openal`  | `pi-engine-audio-openal`| `org.piengine` | OpenAL audio backend for 2D and 3D spatial audio (planned).                |
+| `org.piengine.ui.imgui`      | `pi-engine-ui-imgui`  | `org.piengine` | ImGui-based UI backend for the custom editor (planned).                    |
+| `org.piengine.editor`        | `pi-engine-editor`    | `org.piengine` | Custom editor for scene development, app management, and plugins (planned). |
+
+### 2.3. Modular Design
+The engine is organized into base and plugin modules. Base modules (`org.piengine.math`, `org.piengine.util`, `org.piengine.core`) provide the core functionality. The plugin modules add features like rendering, physics, audio, UI, and editor functionality.
+
+### 2.4. Plugin System
+Plugins are Java classes packaged as `.pip` files (ZIP-compressed JARs), loaded via `ServiceLoader`. They are loaded/unloaded per app, enabling runtime customization. Plugins support pausing/unpausing and initialization for specific apps. Supported components:
 - **Raster Pipeline**: Shaders, ray tracing, post-processing.
 - **Physics**: Rigid/soft bodies, collisions.
 - **Audio**: 3D spatial audio, effects.
@@ -63,11 +80,15 @@ Plugins are Java classes packaged as `.pip` files (ZIP-compressed JARs), loaded 
 
 **Plugin Interface Example**:
 ```java
-package org.pi.game.engine.core.plugin;
+package org.piengine.core.plugin;
 public interface Plugin {
     void init();
+    void initForApp(App app);
     void update(float dt);
+    void pause();
+    void unpause();
     void shutdown();
+    void processScene(Scene scene);
 }
 public class VulkanRasterPlugin implements Plugin, RasterPlugin { ... }
 ```
@@ -82,26 +103,26 @@ plugins:
     path: physx.pip
 ```
 
-### 2.4. Application States
-App states (e.g., `MenuState`, `GameState`) define runtime contexts, each with specific scenes, plugins, and scripts. States are configured in YAML and managed via the editor.
+### 2.5. Apps
+Apps (e.g., `MenuApp`, `GameApp`) define runtime contexts, each with specific scenes, plugins, and scripts. Apps are configured in YAML and managed via the editor.
 
 **Example**:
 ```yaml
-app_states:
-  - id: MenuState
+apps:
+  - id: MenuApp
     scene: menu.pis
     plugins: [basic_raster.pip, imgui_ui.pip]
-  - id: GameState
+  - id: GameApp
     scene: level1.pis
     plugins: [ray_tracing.pip, physx.pip, twitch_stream.pip]
 ```
 
-### 2.5. Multi-Threaded Pipeline
+### 2.6. Multi-Threaded Pipeline
 The engine uses Java’s **StructuredTaskScope** and **Virtual Threads** (JDK 23) for a scalable, debuggable MT pipeline. Components include:
 - **MT Raster Pipeline**: Parallelize culling, draw calls, post-processing.
 - **MT Animation Pipeline**: Parallelize skeleton updates, skinning.
 - **MT Event Handling**: Dispatch input and network events concurrently.
-- **MT Application States**: Update UI and state transitions in parallel.
+- **MT Apps**: Update UI and app transitions in parallel.
 - **MT Plugin Tasks**: Execute plugin tasks within task scopes.
 
 **Example Usage**:
@@ -124,7 +145,7 @@ pipeline:
   use_virtual_threads: true
 ```
 
-### 2.6. File Formats
+### 2.7. File Formats
 Custom `.pi?` formats use a consistent prefix for discoverability (e.g., `*.pi*` search). Formats are YAML-based or binary, with extensibility via metadata.
 
 | **Extension** | **Purpose**             | **Example Content**                     |
@@ -150,7 +171,7 @@ scene:
         position: [0, 0, 0]
 ```
 
-### 2.7. Coordinate and Shape System
+### 2.8. Coordinate and Shape System
 - **Coordinates** (in `org.piengine.commons.math.coordinates`):
   - **Root Interface**: `Coordinate` (shapeless, defines dimension and validity).
   - **Cartesian3D**: Base for 3D coordinates, with inner interfaces `Cartesian3f`, `Cartesian3d` for float and double precision.
@@ -170,7 +191,7 @@ Cartesian3D origin = Point3D.ofFloat(1.0f, 2.0f, 3.0f).getOrigin();
 Vector3f vector = Vector3f.ofFloat(0.0f, 1.0f, 0.0f);
 ```
 
-### 2.8. Rendering Backends
+### 2.9. Rendering Backends
 The raster pipeline is pluggable via plugins, supporting:
 - Vulkan (planned primary, cross-platform).
 - OpenGL (MVP default, fallback for older hardware).
@@ -178,36 +199,28 @@ The raster pipeline is pluggable via plugins, supporting:
 
 **Example**:
 ```java
-package org.pi.game.engine.core.plugin;
+package org.piengine.core.plugin;
 public interface RasterPlugin extends Plugin {
     void draw(SceneNode node);
 }
 ```
 
-### 2.9. APIs
-The Java API is the primary interface, designed to be portable for a future C/C++ API. Commons modules (`pi-engine-commons-math`, `pi-engine-commons-utils`) provide reusable types for other projects (e.g., jMonkeyEngine).
+### 2.10. APIs
+The Java API is the primary interface, designed to be portable for a future C/C++ API.
 
 **Example**:
 ```java
-import org.pi.game.engine.core.scene.Scene;
-import org.pi.game.engine.core.scene.SceneNode;
+import org.piengine.core.scene.Scene;
+import org.piengine.core.scene.SceneNode;
 Scene scene = new Scene();
 SceneNode node = scene.createNode("cube1");
 node.setMesh("cube.pio");
 ```
 
-**jMonkeyEngine Integration**:
-```java
-import org.piengine.commons.math.coordinates.Cartesian3f;
-import com.jme3.math.Vector3f;
-Cartesian3f point = new Cartesian3f(1.0f, 2.0f, 3.0f);
-Vector3f jmePoint = new Vector3f(point.xf(), point.yf(), point.zf());
-```
-
 ## 3. Custom PI-Based Editor
 
 ### 3.1. Overview
-The editor, built as an app state (`EditorState`), provides a simple, powerful interface for scene development, app state management, plugin handling, marketplace interaction, asset management, and config profiles.
+The editor, built as an app (`EditorApp`), provides a simple, powerful interface for scene development, app management, plugin handling, marketplace interaction, asset management, and config profiles.
 
 ### 3.2. Design Principles
 - **Simplicity**: Clean, modular UI with drag-and-drop, visual scripting, and templates.
@@ -219,8 +232,8 @@ The editor, built as an app state (`EditorState`), provides a simple, powerful i
 1. **Scene Development**:
    - Manual editing, procedural generation, importing (FBX, OBJ, glTF, COLLADA).
    - Real-time preview using `RasterPlugin`.
-2. **App State Management**:
-   - Visual editor for states with flowchart transitions.
+2. **App Management**:
+   - Visual editor for apps with flowchart transitions.
 3. **Plugin Management**:
    - Enable/disable, configure, update plugins.
 4. **Marketplace Interaction**:
@@ -235,30 +248,30 @@ The editor, built as an app state (`EditorState`), provides a simple, powerful i
 - Beginner mode, visual scripting, embedded tutorials.
 - Plugin: `ImGuiUIPlugin`.
 
-### 3.5. Editor as App State
+### 3.5. Editor as App
 ```yaml
-app_states:
-  - id: EditorState
+apps:
+  - id: EditorApp
     scene: editor.pis
     plugins: [scene_editor.pip, asset_import.pip, marketplace.pip]
 ```
 
 ## 4. Feature Comparison
-| **Feature**                  | **Unreal Engine**                              | **jMonkeyEngine**                          | **PI’s Approach**                                                                 |
-|------------------------------|-----------------------------------------------|-------------------------------------------|----------------------------------------------------------------------------------|
-| **Rendering**                | PBR, ray tracing, Vulkan/Metal                | PBR, OpenGL, shaders                      | Core: Basic OpenGL. Plugins: Vulkan, DirectX, ray tracing, AI-optimized shaders  |
-| **Physics**                  | PhysX, Chaos                                  | jBullet, Minie                            | Core: None. Plugins: Bullet, PhysX, Havok, GPU-accelerated physics              |
-| **Audio**                    | 3D audio, reverb, occlusion                   | OpenAL, jmePhonon                         | Core: Basic 2D audio. Plugins: OpenAL, FMOD, AI-driven sound propagation        |
-| **Animation**                | Skeletal, blend spaces, IK                    | Skeletal, basic IK                        | Core: Basic keyframing. Plugins: Skeletal, procedural, ML-driven animation      |
-| **Networking**               | Replication, rollback netcode                 | SpiderMonkey, Netty                       | Core: Basic sockets. Plugins: Lockstep, rollback, WebSocket, P2P                |
-| **Streaming**                | Limited (external tools)                      | None                                      | Core: None. Plugins: FFmpeg, Twitch, YouTube, OBS integration                   |
-| **Input**                    | Keyboard, gamepad, VR                         | Keyboard, mouse, gamepad                  | Core: Basic keyboard/mouse. Plugins: Gamepad, VR, custom devices                |
-| **Particles**                | Niagara (GPU-driven)                          | Particle Monkey, Effekseer                | Core: Basic sprites. Plugins: GPU particles, procedural effects, ML-driven      |
-| **Environment**              | Procedural terrain, foliage                   | TerraMonkey, Blocks                       | Core: Static meshes. Plugins: Procedural terrain, voxel-hybrid, AI-generated    |
-| **Styling**                  | PBR materials, UMG UI                         | Lemur, Nifty GUI                          | Core: Basic materials. Plugins: PBR materials, YAML-defined UI, ImGui           |
-| **Editor**                   | World Outliner, Blueprints, complex UI        | jMonkey SDK, basic                        | Custom PI-based, simple UI, procedural tools, marketplace, profiles             |
-| **VR/AR**                    | OpenXR, VR/AR support                        | Oculus Rift (limited)                     | Core: None. Plugins: OpenXR, ARKit/ARCore, spatial computing                   |
-| **AI**                       | Behavior trees, navmeshes, EQS                | Basic pathfinding                         | Core: None. Plugins: ML-driven AI, behavior trees, generative NPCs             |
+| **Feature**                  | **Unreal Engine**                              | **PI’s Approach**                                                                 |
+|------------------------------|-----------------------------------------------|----------------------------------------------------------------------------------|
+| **Rendering**                | PBR, ray tracing, Vulkan/Metal                | Core: Basic OpenGL. Plugins: Vulkan, DirectX, ray tracing, AI-optimized shaders  |
+| **Physics**                  | PhysX, Chaos                                  | Core: None. Plugins: Bullet, PhysX, Havok, GPU-accelerated physics              |
+| **Audio**                    | 3D audio, reverb, occlusion                   | Core: Basic 2D audio. Plugins: OpenAL, FMOD, AI-driven sound propagation        |
+| **Animation**                | Skeletal, blend spaces, IK                    | Core: Basic keyframing. Plugins: Skeletal, procedural, ML-driven animation      |
+| **Networking**               | Replication, rollback netcode                 | Core: Basic sockets. Plugins: Lockstep, rollback, WebSocket, P2P                |
+| **Streaming**                | Limited (external tools)                      | Core: None. Plugins: FFmpeg, Twitch, YouTube, OBS integration                   |
+| **Input**                    | Keyboard, gamepad, VR                         | Core: Basic keyboard/mouse. Plugins: Gamepad, VR, custom devices                |
+| **Particles**                | Niagara (GPU-driven)                          | Core: Basic sprites. Plugins: GPU particles, procedural effects, ML-driven      |
+| **Environment**              | Procedural terrain, foliage                   | Core: Static meshes. Plugins: Procedural terrain, voxel-hybrid, AI-generated    |
+| **Styling**                  | PBR materials, UMG UI                         | Core: Basic materials. Plugins: PBR materials, YAML-defined UI, ImGui           |
+| **Editor**                   | World Outliner, Blueprints, complex UI        | Custom PI-based, simple UI, procedural tools, marketplace, profiles             |
+| **VR/AR**                    | OpenXR, VR/AR support                        | Core: None. Plugins: OpenXR, ARKit/ARCore, spatial computing                   |
+| **AI**                       | Behavior trees, navmeshes, EQS                | Core: None. Plugins: ML-driven AI, behavior trees, generative NPCs             |
 
 ## 5. Asset Pipeline
 - **Import**: FBX, OBJ, glTF, COLLADA via `AssetImportPlugin`.
@@ -273,20 +286,21 @@ app_states:
 ## 7. Implementation Details
 
 ### 7.1. Java Modules
-| **Module**                     | **Group ID**         | **Package**                           | **Purpose**                                                                 |
-|--------------------------------|----------------------|---------------------------------------|-----------------------------------------------------------------------------|
-| `pi-engine-commons-math`       | `org.piengine`       | `org.piengine.commons.math`          | Coordinates, matrices, shapes, math functions                              |
-| `pi-engine-commons-utils`      | `org.piengine`       | `org.piengine.commons.utils`         | Concurrent locks, Registration, event bus (Omnibus), utilities             |
-| `pi-engine-core`               | `org.piengine`       | `org.pi.game.engine.core`            | Plugin management, scenegraphs, app states, task scheduling, input, profiles |
-| `pi-engine-render-opengl`      | `org.piengine`       | `org.pi.game.engine.render.opengl`   | OpenGL rendering (planned)                                                 |
-| `pi-engine-physics-bullet`     | `org.piengine`       | `org.pi.game.engine.physics.bullet`  | Bullet Physics (planned)                                                   |
-| `pi-engine-audio-openal`       | `org.piengine`       | `org.pi.game.engine.audio.openal`    | OpenAL audio (planned)                                                     |
-| `pi-engine-ui-imgui`           | `org.piengine`       | `org.pi.game.engine.ui.imgui`        | ImGui-based editor UI (planned)                                            |
-| `pi-engine-editor`             | `org.piengine`       | `org.pi.game.engine.editor`          | Custom editor (planned)                                                    |
+| **Module**                     | **Maven Artifact ID**     | **Group ID**         | **Package**                           | **Purpose**                                                                 |
+|--------------------------------|---------------------------|----------------------|---------------------------------------|-----------------------------------------------------------------------------|
+| `org.piengine`                 | `pi-engine`               | `org.piengine`       | N/A                                   | Parent module aggregating all submodules.                                  |
+| `org.piengine.math`            | `pi-engine-math`          | `org.piengine`       | `org.piengine.commons.math`           | Coordinates, matrices, shapes, math functions.                             |
+| `org.piengine.util`            | `pi-engine-util`          | `org.piengine`       | `org.piengine.commons.util`           | Concurrent locks, Registration, event bus (Omnibus), utilities.            |
+| `org.piengine.core`            | `pi-engine-core`          | `org.piengine`       | `org.piengine.core`                   | Plugin management, scenegraphs, apps, task scheduling, input, profiles. |
+| `org.piengine.render.opengl`   | `pi-engine-render-opengl` | `org.piengine`       | `org.piengine.render.opengl`          | OpenGL rendering (planned).                                                |
+| `org.piengine.physics.bullet`  | `pi-engine-physics-bullet`| `org.piengine`       | `org.piengine.physics.bullet`         | Bullet Physics (planned).                                                  |
+| `org.piengine.audio.openal`    | `pi-engine-audio-openal`  | `org.piengine`       | `org.piengine.audio.openal`           | OpenAL audio (planned).                                                    |
+| `org.piengine.ui.imgui`        | `pi-engine-ui-imgui`      | `org.piengine`       | `org.piengine.ui.imgui`               | ImGui-based editor UI (planned).                                           |
+| `org.piengine.editor`          | `pi-engine-editor`        | `org.piengine`       | `org.piengine.editor`                 | Custom editor (planned).                                                   |
 
 **Module Descriptors**:
 ```java
-module pi.engine.commons.math {
+module org.piengine.math {
     exports org.piengine.commons.math;
     exports org.piengine.commons.math.coordinates;
     exports org.piengine.commons.math.shapes;
@@ -294,50 +308,47 @@ module pi.engine.commons.math {
     requires java.base;
 }
 
-module pi.engine.commons.utils {
-    exports org.piengine.commons.utils;
-    exports org.piengine.commons.utils.eventbus;
+module org.piengine.util {
+    exports org.piengine.commons.util;
+    exports org.piengine.commons.util.eventbus;
+    exports org.piengine.commons.util.concurrent.locks;
     requires java.base;
 }
 
-module pi.game.engine.core {
-    exports org.pi.game.engine.core;
-    exports org.pi.game.engine.core.plugin;
-    exports org.pi.game.engine.core.scene;
-    exports org.pi.game.engine.core.state;
-    exports org.pi.game.engine.core.task;
-    exports org.pi.game.engine.core.input;
-    exports org.pi.game.engine.core.profile;
-    requires pi.engine.commons.math;
-    requires pi.engine.commons.utils;
+module org.piengine.core {
+    exports org.piengine.core;
+    exports org.piengine.core.plugin;
+    exports org.piengine.core.scene;
+    exports org.piengine.core.app;
+    exports org.piengine.core.task;
+    exports org.piengine.core.input;
+    exports org.piengine.core.profile;
+    requires org.piengine.math;
+    requires org.piengine.util;
     requires org.yaml.snakeyaml;
     requires java.base;
 }
 
-module pi.game.engine.render.opengl {
-    exports org.pi.game.engine.render.opengl;
-    requires pi.game.engine.core;
-    requires pi.engine.commons.math;
+module org.piengine.render.opengl {
+    exports org.piengine.render.opengl;
+    requires org.piengine.core;
+    requires org.piengine.math;
     requires org.lwjgl.opengl;
 }
 ```
 
 **Maven Artifacts**:
-- **POM Example (pi-engine-commons-math)**:
+- **POM Example (pi-engine-math)**:
   ```xml
   <groupId>org.piengine</groupId>
-  <artifactId>pi-engine-commons-math</artifactId>
+  <artifactId>pi-engine-math</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <dependencies>
       <dependency>
           <groupId>org.yaml.snakeyaml</groupId>
           <artifactId>snakeyaml</artifactId>
-          <version>2.3</version>
       </dependency>
   </dependencies>
-  <properties>
-      <maven.compiler.release>23</maven.compiler.release>
-  </properties>
   ```
 
 ### 7.2. Core Libraries
@@ -359,16 +370,15 @@ module pi.game.engine.render.opengl {
 - **SDK**: Plugin templates, documentation.
 
 ## 8. Minimum Viable Product (MVP)
-- **Commons**: `pi-engine-commons-math` (coordinates, shapes, math), `pi-engine-commons-utils` (locks, Registration, Omnibus).
+- **Commons**: `pi-engine-math` (coordinates, shapes, math), `pi-engine-util` (locks, Registration, Omnibus).
 - **Core**: Scenegraphs (`.pis`), input handling, plugin manager, task scheduling, profiles.
-- **Editor**: Scene editing, app state configuration, asset management, plugin enable/disable (planned).
+- **Editor**: Scene editing, app configuration, asset management, plugin enable/disable (planned).
 - **Plugins**: `VulkanRasterPlugin`, `BulletPhysicsPlugin`, `OpenALAudioPlugin`, `ImGuiUIPlugin`, `SceneEditorPlugin` (planned).
 - **Formats**: `.pis`, `.pio`, `.pim`, `.pib`.
 
 ## 9. Challenges and Mitigations
 - **Performance**: Optimize with LWJGL bindings.
 - **Module Dependencies**: Provide `pi-engine-mvp` bundle.
-- **jMonkeyEngine Compatibility**: Ensure `pi-engine-commons-math` converts to `Vector3f`.
 - **Maven Setup**: Automate with GitHub Actions.
 
 ## 10. Future Enhancements
@@ -377,12 +387,12 @@ module pi.game.engine.render.opengl {
 ## 11. Glossary
 - **.pi?**: File extensions (e.g., `.pis`).
 - **Plugin**: `.pip` JAR.
-- **App State**: Runtime context.
+- **App**: Runtime context.
 - **StructuredTaskScope**: Structured concurrency.
 - **Cartesian3D**: 3D coordinate interface.
 
 ## 12. References
-- Unreal Engine, jMonkeyEngine, Godot, O3DE.
+- Unreal Engine, Godot, O3DE.
 - LWJGL, imgui-java, jassimp.
 - Java 23 (JEP 462).
 - SnakeYAML.

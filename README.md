@@ -1,26 +1,42 @@
 # Pie in the Sky (PI) 3D Graphics Engine
 
-**Version**: 0.0.1-SNAPSHOT  
-**Date**: May 30, 2025  
+**Version**: 1.0  
+**Date**: May 31, 2025  
 **License**: MIT  
 
-The Pie in the Sky (PI) 3D Graphics Engine is a next-generation, modular 3D graphics engine designed to combine the simplicity of HTML/CSS with the power of modern game engines like Unreal and Unity. It targets indie developers, educators, and content creators, offering a flexible, community-driven architecture, a custom editor, and advanced features like AI-driven tools and real-time streaming. The engine is cross-platform, supporting Windows, macOS, Linux, iOS, Android, consoles (PS5, Xbox), VR/AR, and web via WebGL/WASM.
+The Pie in the Sky (PI) 3D Graphics Engine is a next-generation, modular 3D graphics engine designed to combine the simplicity of HTML/CSS with the power of modern game engines like Unreal Engine. It targets indie developers, educators, and content creators, offering a flexible, community-driven architecture, a custom editor, and advanced features like AI-driven tools and real-time streaming. The engine is cross-platform, supporting Windows, macOS, Linux, iOS, Android, consoles (PS5, Xbox), VR/AR, and web via WebGL/WASM.
 
 ## Overview
 
-The PI engine is organized into modular components, each focusing on a specific aspect of 3D graphics development:
+The PI engine is built with a modular architecture, allowing developers to extend functionality through plugins while maintaining a lightweight core. The project is organized into several modules:
 
-- **`pi-engine-math`**: Provides mathematical foundations, including 3D coordinates (`Cartesian3D`, `Vector3f`), shapes (`Point3D`), matrices, and utility functions (`MathUtils`).
-- **`pi-engine-util`**: Offers general-purpose utilities, including high-performance concurrency (`UpgradableReadWriteLock`, `Lockable`), event handling (`Omnibus`), and registration (`Registration`).
-- **`pi-engine-core`**: The central module, handling engine-specific APIs like scene management (`Scene`, `SceneNode`), plugins (`Plugin`), application states (`AppState`), task scheduling (`TaskScheduler`), input handling (`InputManager`), and profiles (`Profile`).
-- **Planned Modules**:
-  - `pi-engine-render-opengl`: OpenGL rendering backend.
-  - `pi-engine-physics-bullet`: Bullet Physics integration.
-  - `pi-engine-audio-openal`: OpenAL audio support.
-  - `pi-engine-ui-imgui`: ImGui-based UI for the editor.
-  - `pi-engine-editor`: Custom editor for scene development and app state management.
+- **`pi-engine-math` (Java module: `org.piengine.math`)**: Provides mathematical foundations, including 3D coordinates (`Cartesian3D`, `Vector3f`), shapes (`Point3D`), matrices (`Matrix1x3`, `Matrix4x4`), and utility functions (`MathUtils`) for trigonometry, quaternions, and interpolation.
+- **`pi-engine-util` (Java module: `org.piengine.util`)**: Offers general-purpose utilities, including high-performance concurrency (`UpgradableReadWriteLock`, `Lockable`), event handling (`Omnibus`), and resource management (`Registration`).
+- **`pi-engine-core` (Java module: `org.piengine.core`)**: The main module, providing the core API for scene management (`Scene`, `SceneNode`), plugin system (`Plugin`), apps (`App`), task scheduling (`TaskScheduler` with StructuredTaskScope and Virtual Threads), input handling (`InputManager`), and profiles (`Profile`).
+- **Planned Plugin Modules**:
+  - `pi-engine-render-opengl` (Java module: `org.piengine.render.opengl`): OpenGL rendering backend.
+  - `pi-engine-physics-bullet` (Java module: `org.piengine.physics.bullet`): Bullet Physics integration.
+  - `pi-engine-audio-openal` (Java module: `org.piengine.audio.openal`): OpenAL audio support.
+  - `pi-engine-ui-imgui` (Java module: `org.piengine.ui.imgui`): ImGui-based UI for the editor.
+  - `pi-engine-editor` (Java module: `org.piengine.editor`): Custom editor for scene development and app management.
 
-The PI engine is built with Java 23+, leveraging modern features like StructuredTaskScope and Virtual Threads for efficient multi-threading. It uses LWJGL for rendering, physics, and audio, and SnakeYAML for configuration parsing.
+### Current Deployment State
+As of version 1.0, the PI engine includes the core modules (`pi-engine-core`, `pi-engine-math`, `pi-engine-util`) with the following functionality:
+- Scene management with `.pis` scenegraphs.
+- Plugin system for runtime customization, supporting pausing/unpausing and app-specific initialization.
+- App lifecycle management (`App`, `AppManager`) for runtime contexts (e.g., menu, gameplay).
+- Multi-threading with StructuredTaskScope and Virtual Threads for efficient task scheduling.
+- Basic OpenGL rendering for the MVP.
+- Planned plugin modules for advanced rendering, physics, audio, UI, and editor functionality are in development.
+
+## Prerequisites
+
+To use the PI engine, ensure you have the following:
+
+- **Java**: JDK 23 or higher, with `--enable-preview` enabled for features like StructuredTaskScope and Virtual Threads.
+- **Maven**: For dependency management and building the project.
+- **LWJGL**: Used for rendering, physics, and audio (included as dependencies).
+- **Operating System**: Cross-platform support for Windows, macOS, Linux, with planned support for iOS, Android, consoles, VR/AR, and web.
 
 ## Installation
 
@@ -30,34 +46,119 @@ The PI engine is available on Maven Central as a set of modular dependencies. To
 <dependency>
     <groupId>org.piengine</groupId>
     <artifactId>pi-engine-core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
 </dependency>
 ```
 
-This will automatically include dependencies on `pi-engine-math` and `pi-engine-util`. For specific features, add the relevant modules (e.g., `pi-engine-render-opengl` when available).
+This will automatically include dependencies on `pi-engine-math` and `pi-engine-util`. For specific features, add the relevant plugin modules once they are available (e.g., `pi-engine-render-opengl`).
 
-### Requirements
-- **Java**: 23 or higher (with `--enable-preview` for features like StructuredTaskScope and Virtual Threads).
-- **Dependencies**:
-  - `pi-engine-math` (for coordinates and shapes).
-  - `pi-engine-util` (for concurrency and event handling).
-  - SnakeYAML (for parsing `.pis` files and profiles).
-  - LWJGL (for rendering, physics, audio; included via parent POM).
+### Sample POM for MVP Build
+Below is a sample `pom.xml` for an MVP build, integrating the necessary components:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>pi-engine-mvp</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.release>23</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <lwjgl.version>3.3.3</lwjgl.version>
+        <snakeyaml.version>2.3</snakeyaml.version>
+    </properties>
+
+    <dependencies>
+        <!-- Core PI Engine Module -->
+        <dependency>
+            <groupId>org.piengine</groupId>
+            <artifactId>pi-engine-core</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- LWJGL for OpenGL Rendering (MVP) -->
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opengl</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <!-- SnakeYAML for Configuration Parsing -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+## Project Structure
+
+The PI engine repository is organized as follows:
+
+```
+PiSkyEngine/pisky-engine/
+├── pi-engine/                # Parent module
+│   ├── pom.xml              # Parent POM
+│   └── README.md            # This README
+├── pi-engine-math/          # Math module (org.piengine.math)
+│   ├── src/main/java/org/piengine/commons/math/
+│   ├── pom.xml
+│   └── README.md
+├── pi-engine-util/          # Util module (org.piengine.util)
+│   ├── src/main/java/org/piengine/commons/util/
+│   ├── pom.xml
+│   └── README.md
+├── pi-engine-core/          # Core module (org.piengine.core)
+│   ├── src/main/java/org/piengine/core/
+│   ├── pom.xml
+│   └── README.md
+├── pi-engine-render-opengl/ # Planned OpenGL rendering module
+├── pi-engine-physics-bullet/ # Planned Bullet Physics module
+├── pi-engine-audio-openal/  # Planned OpenAL audio module
+├── pi-engine-ui-imgui/      # Planned ImGui UI module
+├── pi-engine-editor/        # Planned editor module
+└── LICENSE                  # MIT License file
+```
 
 ## Usage Example
 
-### Creating a Simple Game Scene with Plugins and Events
-This example demonstrates integrating `pi-engine-core`, `pi-engine-math`, and `pi-engine-util` to create a scene, manage application states, handle input via events, and update the scene using a plugin.
+### Creating a Simple Game App with Plugins and Events
+This example demonstrates integrating `pi-engine-core`, `pi-engine-math`, and `pi-engine-util` to create a scene, manage an app, handle input via events, and update the scene using a plugin.
 
 ```java
-import org.pi.game.engine.core.scene.Scene;
-import org.pi.game.engine.core.scene.SceneNode;
-import org.pi.game.engine.core.plugin.Plugin;
-import org.pi.game.engine.core.state.AppState;
-import org.pi.game.engine.core.state.StateManager;
-import org.piengine.commons.math.coordinates.Cartesian3f;
-import org.piengine.commons.util.Registration;
-import org.piengine.commons.util.eventbus.Omnibus;
+import org.piengine.core.scene.Scene;
+import org.piengine.core.scene.SceneNode;
+import org.piengine.core.plugin.Plugin;
+import org.piengine.core.app.App;
+import org.piengine.core.app.AppManager;
+import org.piengine.math.coordinates.Cartesian3f;
+import org.piengine.util.Registration;
+import org.piengine.util.eventbus.Omnibus;
 
 // Event for input
 class InputEvent {
@@ -71,6 +172,7 @@ class UpdatePlugin implements Plugin {
     private final Scene scene;
     private final Omnibus eventBus;
     private Registration inputListener;
+    private boolean paused = false;
 
     public UpdatePlugin(Scene scene, Omnibus eventBus) {
         this.scene = scene;
@@ -82,6 +184,7 @@ class UpdatePlugin implements Plugin {
         System.out.println("UpdatePlugin initialized");
         // Register input listener
         inputListener = eventBus.registerListener(InputEvent.class, event -> {
+            if (paused) return;
             SceneNode player = scene.getNode("player");
             Cartesian3f position = player.getPosition();
             if ("move_right".equals(event.getAction())) {
@@ -92,15 +195,38 @@ class UpdatePlugin implements Plugin {
     }
 
     @Override
+    public void initForApp(App app) {
+        System.out.println("UpdatePlugin initialized for app: " + app);
+    }
+
+    @Override
     public void update(float dt) {
-        // Simulate game loop update
-        System.out.println("UpdatePlugin updating with dt: " + dt);
+        if (!paused) {
+            System.out.println("UpdatePlugin updating with dt: " + dt);
+        }
+    }
+
+    @Override
+    public void pause() {
+        paused = true;
+        System.out.println("UpdatePlugin paused");
+    }
+
+    @Override
+    public void unpause() {
+        paused = false;
+        System.out.println("UpdatePlugin unpaused");
     }
 
     @Override
     public void shutdown() {
         System.out.println("UpdatePlugin shutdown");
         inputListener.unregister();
+    }
+
+    @Override
+    public void processScene(Scene scene) {
+        System.out.println("UpdatePlugin processing scene");
     }
 }
 
@@ -109,41 +235,163 @@ public class GameExample {
         // Initialize event bus for input handling
         Omnibus eventBus = new OmnibusImpl();
 
-        // Create a state manager
-        StateManager stateManager = new StateManager();
+        // Create an app manager
+        AppManager appManager = new AppManager();
 
         // Create a scene with a player node
         Scene scene = new Scene();
         SceneNode playerNode = scene.createNode("player");
         playerNode.setPosition(new Cartesian3f(0.0f, 0.0f, 0.0f));
 
-        // Define a game state with an update plugin
-        AppState gameState = new AppState("GameState");
-        gameState.addPlugin(new UpdatePlugin(scene, eventBus));
-        stateManager.addState(gameState);
+        // Define a game app with an update plugin
+        App gameApp = new App("GameApp") {
+            private Scene appScene;
+            private AppStatus status = AppStatus.UNINITIALIZED;
 
-        // Switch to the game state
-        stateManager.setCurrentState("GameState");
+            @Override
+            public void initialize() {
+                appScene = scene;
+                status = AppStatus.INITIALIZED;
+                System.out.println("GameApp initialized");
+            }
+
+            @Override
+            public void start() {
+                status = AppStatus.RUNNING;
+                System.out.println("GameApp started");
+            }
+
+            @Override
+            public void update(float deltaTime) {
+                System.out.println("GameApp updating");
+            }
+
+            @Override
+            public void pause() { status = AppStatus.PAUSED; }
+            @Override
+            public void unpause() { status = AppStatus.RUNNING; }
+            @Override
+            public void stop() { status = AppStatus.STOPPED; }
+            @Override
+            public void cleanup() { status = AppStatus.TERMINATED; }
+            @Override
+            public Scene getScene() { return appScene; }
+            @Override
+            public AppStatus getStatus() { return status; }
+            @Override
+            public void addPlugin(Plugin plugin) { plugin.initForApp(this); }
+            @Override
+            public void removePlugin(Plugin plugin) { plugin.shutdown(); }
+        };
+        gameApp.addPlugin(new UpdatePlugin(scene, eventBus));
+        appManager.addApp(gameApp);
+
+        // Switch to the game app
+        appManager.setCurrentApp("GameApp");
 
         // Simulate input event (e.g., player moves right)
         eventBus.publish(new InputEvent("move_right"));
 
         // Simulate an update loop
-        stateManager.update(0.016f); // 60 FPS frame time
+        appManager.update(0.016f); // 60 FPS frame time
 
-        // Shutdown the state manager
-        stateManager.shutdown();
+        // Pause and update again
+        gameApp.pause();
+        appManager.update(0.016f);
+
+        // Unpause and update
+        gameApp.unpause();
+        appManager.update(0.016f);
+
+        // Shutdown the app manager
+        appManager.shutdown();
     }
 }
 ```
 
 **Output**:
 ```
+UpdatePlugin initialized for app: GameApp@...
+GameApp initialized
+GameApp started
 UpdatePlugin initialized
 Player moved to: 1.0
+GameApp updating
+UpdatePlugin updating with dt: 0.016
+UpdatePlugin paused
+GameApp updating
+UpdatePlugin unpaused
+GameApp updating
 UpdatePlugin updating with dt: 0.016
 UpdatePlugin shutdown
 ```
+
+## Plugin Development Guide
+
+To create a custom plugin, implement the `Plugin` interface:
+
+1. **Define the Plugin Class**:
+   ```java
+   import org.piengine.core.plugin.Plugin;
+   import org.piengine.core.scene.Scene;
+   import org.piengine.core.app.App;
+
+   public class CustomPlugin implements Plugin {
+       @Override
+       public void init() { System.out.println("CustomPlugin initialized"); }
+
+       @Override
+       public void initForApp(App app) { System.out.println("CustomPlugin initialized for app: " + app); }
+
+       @Override
+       public void update(float dt) { System.out.println("CustomPlugin updating with dt: " + dt); }
+
+       @Override
+       public void pause() { System.out.println("CustomPlugin paused"); }
+
+       @Override
+       public void unpause() { System.out.println("CustomPlugin unpaused"); }
+
+       @Override
+       public void shutdown() { System.out.println("CustomPlugin shutdown"); }
+
+       @Override
+       public void processScene(Scene scene) { System.out.println("CustomPlugin processing scene"); }
+   }
+   ```
+
+2. **Package as a `.pip` File**:
+   - Create a JAR file containing your plugin class.
+   - ZIP the JAR into a `.pip` file (e.g., `custom-plugin.pip`).
+
+3. **Load the Plugin**:
+   ```yaml
+   apps:
+     - id: GameApp
+       scene: game.pis
+       plugins: [custom-plugin.pip]
+   ```
+
+4. **Register with ServiceLoader** (Optional):
+   - Add a `META-INF/services/org.piengine.core.plugin.Plugin` file in your JAR, listing your plugin class (e.g., `com.example.CustomPlugin`).
+
+## Troubleshooting
+
+- **Java Version Issues**: Ensure you’re using JDK 23+ with `--enable-preview`. Add the following to your JVM arguments:
+  ```
+  --enable-preview
+  ```
+- **LWJGL Dependencies**: If you encounter native library errors, ensure the correct LWJGL natives are included for your platform. Add the appropriate dependency:
+  ```xml
+  <dependency>
+      <groupId>org.lwjgl</groupId>
+      <artifactId>lwjgl</artifactId>
+      <version>3.3.3</version>
+      <classifier>${os.detected.classifier}</classifier>
+  </dependency>
+  ```
+- **Plugin Not Loading**: Verify the `.pip` file is a valid ZIP containing a JAR with a `META-INF/services/org.piengine.core.plugin.Plugin` entry.
+- **Scene Not Rendering**: For the MVP, ensure basic OpenGL rendering is set up. Advanced rendering backends (e.g., Vulkan) are planned for future releases.
 
 ## Contributing
 
@@ -157,88 +405,8 @@ Contributions are welcome! Please follow these steps:
 
 For more details, see the [Contributing Guide](https://github.com/PiSkyEngine/pisky-engine/wiki/Contributing) in the project wiki.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-```text
-MIT License
-
-Copyright (c) 2025 Sly Technologies Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-```
-
 ## Links
 - **Project Website**: [www.piengine.org](https://www.piengine.org)
 - **GitHub Wiki**: [PiSkyEngine/pisky-engine Wiki](https://github.com/PiSkyEngine/pisky-engine/wiki)
 - **Repository**: [PiSkyEngine/pisky-engine](https://github.com/PiSkyEngine/pisky-engine)
 - **Issue Tracker**: [GitHub Issues](https://github.com/PiSkyEngine/pisky-engine/issues)
-
-
-
----
-
-### **Explanation of the `README.md`**
-
-#### **Structure**
-- **Header**: Includes the project name (`Pie in the Sky (PI) 3D Graphics Engine`), version (`0.0.1-SNAPSHOT`), date (May 30, 2025, as per the current date), and license (MIT).
-- **Overview**: Summarizes the PI engine’s purpose (modular 3D graphics engine), target audience (indie developers, educators, content creators), and cross-platform support. Lists all modules (`pi-engine-math`, `pi-engine-util`, `pi-engine-core`, and planned modules), describing their roles.
-- **Installation**:
-  - Provides Maven dependency snippet for `pi-engine-core`, noting that it pulls in `pi-engine-math` and `pi-engine-util`.
-  - Lists requirements (Java 23 with `--enable-preview`, dependencies on SnakeYAML, LWJGL included via parent POM).
-- **Usage Example**:
-  - **Creating a Simple Game Scene with Plugins and Events**: Demonstrates integrating the core modules:
-    - Uses `pi-engine-core` for scene management (`Scene`, `SceneNode`), state management (`AppState`, `StateManager`), and plugins (`Plugin`).
-    - Uses `pi-engine-math` for positioning (`Cartesian3f`).
-    - Uses `pi-engine-util` for event handling (`Omnibus`, `Registration`).
-    - The example creates a scene with a `player` node, sets up a game state with an `UpdatePlugin`, and uses `Omnibus` to handle an input event (e.g., moving the player).
-    - Output: Shows the plugin lifecycle and player movement, confirming the integration of modules.
-- **Contributing**: Provides standard GitHub contribution steps, linking to a wiki page for detailed guidelines.
-- **License**: Includes the MIT license text, consistent with the project’s license.
-- **Links**:
-  - Project website: `www.piengine.org`.
-  - GitHub wiki: `https://github.com/PiSkyEngine/pisky-engine/wiki`.
-  - Repository path: Assumed as `PiSkyEngine/pisky-engine`.
-  - Issue tracker: Links to GitHub issues.
-
-#### **Alignment with PI Engine**
-- **Module Integration**: The README summarizes all modules, showing how they work together:
-  - `pi-engine-math` provides `Cartesian3f` for positioning.
-  - `pi-engine-util` provides `Omnibus` and `Registration` for event handling.
-  - `pi-engine-core` manages the scene, plugins, and states.
-- **Version**: Matches the project version (`0.0.1-SNAPSHOT`).
-- **Java 23**: Noted in requirements, with `--enable-preview` for features like StructuredTaskScope and Virtual Threads.
-- **License**: Uses MIT, consistent with prior READMEs and POM files.
-
-#### **Example**
-- **Game Scene with Plugins and Events**: Combines key features:
-  - Creates a `Scene` with a `SceneNode` (`player`), using `Cartesian3f` for positioning.
-  - Sets up an `AppState` with an `UpdatePlugin` that listens for input events via `Omnibus`.
-  - Simulates an input event (`move_right`) to move the player, demonstrating event-driven updates.
-  - The example integrates scene management, state transitions, plugin lifecycle, and event handling, showcasing the modular design of the PI engine.
-
-#### **Dependencies**
-- The example implicitly relies on `pi-engine-math` for coordinates and `pi-engine-util` for `Omnibus` and `Registration`, which are pulled in by `pi-engine-core`’s dependencies (as defined in the core module’s `pom.xml`).
-
----
-
-### **Conclusion**
-
-The `README.md` for the `pi-engine` parent module provides a comprehensive overview of the PI 3D graphics engine, summarizing the roles of all modules and demonstrating their integration through a practical example. It uses the MIT license, links to the project website (`www.piengine.org`) and GitHub wiki, and serves as the top-level documentation for the project on GitHub. The example shows how to create a simple game scene with plugins and event handling, aligning with the PI engine’s focus on modularity and extensibility.
