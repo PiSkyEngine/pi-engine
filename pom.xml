@@ -24,6 +24,7 @@
         <module>../pi-engine-math</module>
         <module>../pi-engine-util</module>
         <module>../pi-engine-core</module>
+        <module>../pi-engine-inject</module>
 <!--        <module>pi-engine-render-opengl</module>-->
 <!--        <module>pi-engine-physics-bullet</module>-->
 <!--        <module>pi-engine-audio-openal</module>-->
@@ -32,10 +33,11 @@
     </modules>
 
     <properties>
-        <maven.compiler.release>23</maven.compiler.release>
+        <maven.compiler.release>24</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lwjgl.version>3.3.3</lwjgl.version>
         <snakeyaml.version>2.3</snakeyaml.version>
+        <jackson.version>2.15.2</jackson.version>
         <jassimp.version>0.3.3</jassimp.version>
         <imgui.version>1.86.11</imgui.version>
         <junit.version>5.10.3</junit.version>
@@ -94,10 +96,15 @@
                 <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
-    <build>
+<build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -135,8 +142,20 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                    <additionalJOption>--enable-preview</additionalJOption>
+                </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
     <distributionManagement>
